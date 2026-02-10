@@ -1,3 +1,4 @@
+import { getCallSites } from "node:util";
 import * as df from "date-fns";
 import * as v from "valibot";
 
@@ -33,23 +34,23 @@ export class Logger {
       this.fetch = fetch;
     }
 
-    console.log(`[harrsoft logger] Initialized logger (${this.serverUrl})`);
+    console.log(`[@harrsoft/logger] Initialized logger (${this.serverUrl})`);
   }
 
-  info(log: v1.Log) {
-    this.pushLog("info", log);
+  info(message: string) {
+    this.pushLog("info", message);
   }
 
-  warn(log: v1.Log) {
-    this.pushLog("warn", log);
+  warn(message: string) {
+    this.pushLog("warn", message);
   }
 
-  error(log: v1.Log) {
-    this.pushLog("error", log);
+  error(message: string) {
+    this.pushLog("error", message);
   }
 
-  fatal(log: v1.Log) {
-    this.pushLog("fatal", log);
+  fatal(message: string) {
+    this.pushLog("fatal", message);
   }
 
   private async authenticate() {
@@ -58,7 +59,7 @@ export class Logger {
       const res = await this.fetch(this.authUrl, {
         method: "GET",
         headers: {
-          "Authorization": `Basic key:${this.apiKey}`,
+          Authorization: `Basic key:${this.apiKey}`,
         },
       });
 
@@ -68,7 +69,7 @@ export class Logger {
         this.tokenExpiresAt = df.fromUnixTime(answer.expires);
       } catch (e) {
         console.error(
-          "[harrsoft logger] Failed to authenticate:",
+          "[@harrsoft/logger] Failed to authenticate:",
           `${res.status}: ${res.statusText}`,
         );
         throw e;
@@ -76,22 +77,14 @@ export class Logger {
     }
   }
 
-  private async pushLog(level: v1.LogLevel, log: v1.Log) {
+  private async pushLog(level: v1.LogLevel, message: string) {
     // get call stack
-    // skip first line "Error",
-    // second line (this function),
-    // and third line (info, warn. error, or fatal call)
-    const stackLine = new Error().stack?.split("\n").slice(3)[0] || "";
-    const match = stackLine.match(/at .+ \((file:\/\/)?(.+):(\d+):(\d+)\)/);
-    const filename = match?.[2];
-    const line = match && match[3] ? parseInt(match[3], 10) : undefined;
-    const column = match && match[4] ? parseInt(match[4], 10) : undefined;
+    // skip first site (this function),
+    // skip second site (info, warn. error, or fatal call)
+    const callSite = getCallSites({ sourceMap: true }).slice(2)[0];
 
-    if (!filename) {
-      console.warn(
-        "[harrsoft logger] Could not determine stack trace from ",
-        new Error().stack,
-      );
+    if (!callSite) {
+      console.warn("[@harrsoft/logger] Could not determine call site");
     }
 
     try {
@@ -100,19 +93,21 @@ export class Logger {
       await this.fetch(this.pushUrl, {
         method: "POST",
         headers: {
-          "Authorization": "Bearer " + this.token,
+          Authorization: "Bearer " + this.token,
         },
-        body: JSON.stringify(v.parse(v1.APIPushRequest, {
-          code: log.code,
-          message: log.message,
-          level,
-          filename,
-          line,
-          column,
-        } satisfies v1.APIPushRequest)),
+        body: JSON.stringify(
+          v.parse(v1.APIPushRequest, {
+            level,
+            message,
+            file: callSite?.scriptName,
+            function: callSite?.functionName,
+            line: callSite?.lineNumber,
+            column: callSite?.columnNumber,
+          } satisfies v1.APIPushRequest),
+        ),
       });
     } catch (e) {
-      console.error("[harrsoft logger] Could not deliver log:", e);
+      console.error("[@harrsoft/logger] Could not deliver log:", e);
     }
   }
 }

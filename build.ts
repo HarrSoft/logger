@@ -18,4 +18,4 @@ await Promise.all([
     format: "cjs",
     naming: "[dir]/[name].cjs",
   }),
-])
+]);
