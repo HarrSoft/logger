@@ -4,6 +4,10 @@ import * as v from "valibot";
 
 import * as v1 from "./v1";
 
+const encodeB64 = (s: string): string => {
+  return Buffer.from(s, "utf-8").toString("base64");
+};
+
 export interface LoggerInit {
   serverUrl: URL | string;
   apiKey: string;
@@ -38,28 +42,29 @@ export class Logger {
   }
 
   info(message: string) {
-    this.pushLog("info", message);
+    this.postLog("info", message);
   }
 
   warn(message: string) {
-    this.pushLog("warn", message);
+    this.postLog("warn", message);
   }
 
   error(message: string) {
-    this.pushLog("error", message);
+    this.postLog("error", message);
   }
 
   fatal(message: string) {
-    this.pushLog("fatal", message);
+    this.postLog("fatal", message);
   }
 
   private async authenticate() {
     if (!this.tokenExpiresAt || df.isPast(this.tokenExpiresAt)) {
       // fetch new token
+      const basic = encodeB64(`key:${this.apiKey}`);
       const res = await this.fetch(this.authUrl, {
         method: "GET",
         headers: {
-          Authorization: `Basic key:${this.apiKey}`,
+          Authorization: `Basic ${basic}`,
         },
       });
 
@@ -77,7 +82,7 @@ export class Logger {
     }
   }
 
-  private async pushLog(level: v1.LogLevel, message: string) {
+  private async postLog(level: v1.LogLevel, message: string) {
     // get call stack
     // skip first site (this function),
     // skip second site (info, warn. error, or fatal call)
