@@ -1,0 +1,30 @@
+{
+  "name": "@harrsoft/logger",
+  "version": "0.1.0",
+  "description": "Harrsoft's structured logging library",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harrsoft/logger.git"
+  },
+  "homepage": "https://github.com/harrsoft/logger#readme",
+  "bugs": "https://github.com/harrsoft/logger/issues",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun run build.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-plugin-dts": "^0.3.0"
+  }
+}
