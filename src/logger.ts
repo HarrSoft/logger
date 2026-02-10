@@ -69,7 +69,7 @@ export class Logger {
     }
 
     // get the caller of info, warn, error, or fatal
-    const caller = s.stack[2];
+    const caller = s.stack[1];
     const line =
       caller?.getLineNumber() !== null ?
         (caller!.getLineNumber() as number)
