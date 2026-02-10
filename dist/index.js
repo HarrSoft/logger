@@ -314,7 +314,7 @@ class Logger {
     if (!s.stack) {
       console.warn("[@harrsoft/logger] Could not determine call site");
     }
-    const caller = s.stack[2];
+    const caller = s.stack[1];
     const line = caller?.getLineNumber() !== null ? caller.getLineNumber() : undefined;
     const column = caller?.getColumnNumber() !== null ? caller.getColumnNumber() : undefined;
     const basicAuth = encodeB64(`${this.keyId}:${this.apiKey}`);
