@@ -18,9 +18,12 @@
     "import": "./dist/index.js",
     "require": "./dist/index.cjs"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "bun run build.ts"
+    "build": "bun run build.ts",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "date-fns": "^4.1.0",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.2.2",
-    "bun-plugin-dts": "^0.3.0"
+    "bun-plugin-dts": "^0.3.0",
+    "prettier": "^3.8.1"
   }
 }
