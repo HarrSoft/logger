@@ -5,27 +5,23 @@ import * as v from 'valibot';
 export interface LoggerInit {
 	service: string;
 	serverUrl: URL | string;
-	projectId: string;
+	keyId: string;
 	apiKey: string;
 	fetch?: typeof fetch;
 }
 export declare class Logger {
 	private service;
 	private serverUrl;
-	private projectId;
+	private keyId;
 	private apiKey;
 	private fetch;
 	private apiVersion;
-	private token;
-	private tokenExpiresAt;
-	private authUrl;
 	private pushUrl;
 	constructor(init: LoggerInit);
 	info(message: string): void;
 	warn(message: string): void;
 	error(message: string): void;
 	fatal(message: string): void;
-	private authenticate;
 	private postLog;
 }
 export declare const LogLevel: v.PicklistSchema<[

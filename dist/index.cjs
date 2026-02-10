@@ -36,47 +36,6 @@ __export(exports_src, {
 });
 module.exports = __toCommonJS(exports_src);
 
-// src/logger.ts
-var import_node_util = require("node:util");
-
-// node_modules/date-fns/constants.js
-var daysInYear = 365.2425;
-var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1000;
-var minTime = -maxTime;
-var secondsInHour = 3600;
-var secondsInDay = secondsInHour * 24;
-var secondsInWeek = secondsInDay * 7;
-var secondsInYear = secondsInDay * daysInYear;
-var secondsInMonth = secondsInYear / 12;
-var secondsInQuarter = secondsInMonth * 3;
-var constructFromSymbol = Symbol.for("constructDateFrom");
-
-// node_modules/date-fns/constructFrom.js
-function constructFrom(date, value) {
-  if (typeof date === "function")
-    return date(value);
-  if (date && typeof date === "object" && constructFromSymbol in date)
-    return date[constructFromSymbol](value);
-  if (date instanceof Date)
-    return new date.constructor(value);
-  return new Date(value);
-}
-
-// node_modules/date-fns/toDate.js
-function toDate(argument, context) {
-  return constructFrom(context || argument, argument);
-}
-
-// node_modules/date-fns/fromUnixTime.js
-function fromUnixTime(unixTime, options) {
-  return toDate(unixTime * 1000, options?.in);
-}
-
-// node_modules/date-fns/isPast.js
-function isPast(date) {
-  return +toDate(date) < Date.now();
-}
-
 // node_modules/valibot/dist/index.mjs
 var store$4;
 function getGlobalConfig(config$1) {
@@ -354,20 +313,16 @@ var encodeB64 = (s) => {
 class Logger {
   service;
   serverUrl;
-  projectId;
+  keyId;
   apiKey;
   fetch;
   apiVersion = "/v1";
-  token;
-  tokenExpiresAt;
-  authUrl;
   pushUrl;
   constructor(init) {
     this.service = init.service;
-    this.projectId = init.projectId;
+    this.keyId = init.keyId;
     this.apiKey = init.apiKey;
     this.serverUrl = new URL(this.apiVersion, init.serverUrl);
-    this.authUrl = new URL("/auth", this.serverUrl);
     this.pushUrl = new URL("/push", this.serverUrl);
     if (init.fetch) {
       this.fetch = init.fetch;
@@ -388,45 +343,33 @@ class Logger {
   fatal(message) {
     this.postLog("fatal", message);
   }
-  async authenticate() {
-    if (!this.tokenExpiresAt || isPast(this.tokenExpiresAt)) {
-      const basic = encodeB64(`${this.projectId}:${this.apiKey}`);
-      const res = await this.fetch(this.authUrl, {
-        method: "GET",
-        headers: {
-          Authorization: `Basic ${basic}`
-        }
-      });
-      try {
-        const answer = parse(APIAuthResponse, await res.json());
-        this.token = answer.token;
-        this.tokenExpiresAt = fromUnixTime(answer.expires);
-      } catch (e) {
-        console.error("[@harrsoft/logger] Failed to authenticate:", `${res.status}: ${res.statusText}`);
-        throw e;
-      }
-    }
-  }
   async postLog(level, message) {
-    const callSite = import_node_util.getCallSites({ sourceMap: true }).slice(2)[0];
-    if (!callSite) {
+    const oldPrepare = Error.prepareStackTrace;
+    Error.prepareStackTrace = (_err, callSites) => callSites;
+    let s = {};
+    Error.captureStackTrace(s, this.postLog);
+    Error.prepareStackTrace = oldPrepare;
+    if (!s.stack) {
       console.warn("[@harrsoft/logger] Could not determine call site");
     }
+    const caller = s.stack[2];
+    const line = caller?.getLineNumber() !== null ? caller.getLineNumber() : undefined;
+    const column = caller?.getColumnNumber() !== null ? caller.getColumnNumber() : undefined;
+    const basicAuth = encodeB64(`${this.keyId}:${this.apiKey}`);
     try {
-      await this.authenticate();
       await this.fetch(this.pushUrl, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + this.token
+          Authorization: "Basic " + basicAuth
         },
         body: JSON.stringify(parse(APIPushRequest, {
           level,
           message,
           service: this.service,
-          file: callSite?.scriptName,
-          function: callSite?.functionName,
-          line: callSite?.lineNumber,
-          column: callSite?.columnNumber
+          file: caller?.getFileName() || undefined,
+          function: caller?.getFunctionName() || undefined,
+          line,
+          column
         }))
       });
     } catch (e) {

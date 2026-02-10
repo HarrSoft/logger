@@ -1,6 +1,4 @@
-import { getCallSites } from "node:util";
 import * as v from "valibot";
-
 import * as v1 from "./v1";
 
 const encodeB64 = (s: string): string => {
@@ -59,14 +57,27 @@ export class Logger {
   }
 
   private async postLog(level: v1.LogLevel, message: string) {
-    // get call stack
-    // skip first site (this function),
-    // skip second site (info, warn. error, or fatal call)
-    const callSite = getCallSites({ sourceMap: true }).slice(2)[0];
+    // do some hacks to get the stack trace
+    const oldPrepare = Error.prepareStackTrace;
+    Error.prepareStackTrace = (_err, callSites) => callSites;
+    let s: { stack: NodeJS.CallSite[] } = {} as any;
+    Error.captureStackTrace(s, this.postLog);
+    Error.prepareStackTrace = oldPrepare;
 
-    if (!callSite) {
+    if (!s.stack) {
       console.warn("[@harrsoft/logger] Could not determine call site");
     }
+
+    // get the caller of info, warn, error, or fatal
+    const caller = s.stack[2];
+    const line =
+      caller?.getLineNumber() !== null ?
+        (caller!.getLineNumber() as number)
+      : undefined;
+    const column =
+      caller?.getColumnNumber() !== null ?
+        (caller!.getColumnNumber() as number)
+      : undefined;
 
     const basicAuth = encodeB64(`${this.keyId}:${this.apiKey}`);
     try {
@@ -80,10 +91,10 @@ export class Logger {
             level,
             message,
             service: this.service,
-            file: callSite?.scriptName,
-            function: callSite?.functionName,
-            line: callSite?.lineNumber,
-            column: callSite?.columnNumber,
+            file: caller?.getFileName() || undefined,
+            function: caller?.getFunctionName() || undefined,
+            line,
+            column,
           } satisfies v1.APIPushRequest),
         ),
       });
