@@ -26,7 +26,6 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "date-fns": "^4.1.0",
     "valibot": "^1.2.0"
   },
   "devDependencies": {
