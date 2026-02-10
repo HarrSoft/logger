@@ -29,8 +29,10 @@ var __export = (target, all) => {
 // src/index.ts
 var exports_src = {};
 __export(exports_src, {
-  v1: () => exports_v1,
-  Logger: () => Logger
+  Logger: () => Logger,
+  LogLevel: () => LogLevel,
+  APIPushRequest: () => APIPushRequest,
+  APIAuthResponse: () => APIAuthResponse
 });
 module.exports = __toCommonJS(exports_src);
 
@@ -329,12 +331,6 @@ function parse(schema, input, config$1) {
 }
 
 // src/v1.ts
-var exports_v1 = {};
-__export(exports_v1, {
-  LogLevel: () => LogLevel,
-  APIPushRequest: () => APIPushRequest,
-  APIAuthResponse: () => APIAuthResponse
-});
 var LogLevel = picklist(["info", "warn", "error", "fatal"]);
 var APIAuthResponse = object({
   token: string(),

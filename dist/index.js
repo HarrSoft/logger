@@ -1,14 +1,3 @@
-var __defProp = Object.defineProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, {
-      get: all[name],
-      enumerable: true,
-      configurable: true,
-      set: (newValue) => all[name] = () => newValue
-    });
-};
-
 // src/logger.ts
 import { getCallSites } from "node:util";
 
@@ -304,12 +293,6 @@ function parse(schema, input, config$1) {
 }
 
 // src/v1.ts
-var exports_v1 = {};
-__export(exports_v1, {
-  LogLevel: () => LogLevel,
-  APIPushRequest: () => APIPushRequest,
-  APIAuthResponse: () => APIAuthResponse
-});
 var LogLevel = picklist(["info", "warn", "error", "fatal"]);
 var APIAuthResponse = object({
   token: string(),
@@ -414,6 +397,8 @@ class Logger {
   }
 }
 export {
-  exports_v1 as v1,
-  Logger
+  Logger,
+  LogLevel,
+  APIPushRequest,
+  APIAuthResponse
 };

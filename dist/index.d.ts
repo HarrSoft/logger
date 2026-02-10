@@ -28,19 +28,19 @@ export declare class Logger {
 	private authenticate;
 	private postLog;
 }
-declare const LogLevel: v.PicklistSchema<[
+export declare const LogLevel: v.PicklistSchema<[
 	"info",
 	"warn",
 	"error",
 	"fatal"
 ], undefined>;
 export type LogLevel = v.InferOutput<typeof LogLevel>;
-declare const APIAuthResponse: v.ObjectSchema<{
+export declare const APIAuthResponse: v.ObjectSchema<{
 	readonly token: v.StringSchema<undefined>;
 	readonly expires: v.NumberSchema<undefined>;
 }, undefined>;
 export type APIAuthResponse = v.InferOutput<typeof APIAuthResponse>;
-declare const APIPushRequest: v.ObjectSchema<{
+export declare const APIPushRequest: v.ObjectSchema<{
 	readonly level: v.PicklistSchema<[
 		"info",
 		"warn",
@@ -55,13 +55,5 @@ declare const APIPushRequest: v.ObjectSchema<{
 	readonly column: v.OptionalSchema<v.NumberSchema<undefined>, undefined>;
 }, undefined>;
 export type APIPushRequest = v.InferInput<typeof APIPushRequest>;
-
-declare namespace v1 {
-	export { APIAuthResponse, APIPushRequest, LogLevel };
-}
-
-export {
-	v1,
-};
 
 export {};
