@@ -10,12 +10,14 @@ const encodeB64 = (s: string): string => {
 
 export interface LoggerInit {
   serverUrl: URL | string;
+  projectId: string;
   apiKey: string;
   fetch?: typeof fetch;
 }
 
 export class Logger {
   private serverUrl: URL;
+  private projectId: string;
   private apiKey: string;
   private fetch: typeof fetch;
 
@@ -27,6 +29,7 @@ export class Logger {
   private pushUrl: URL;
 
   constructor(init: LoggerInit) {
+    this.projectId = init.projectId;
     this.apiKey = init.apiKey;
     this.serverUrl = new URL(this.apiVersion, init.serverUrl);
     this.authUrl = new URL("/auth", this.serverUrl);
@@ -60,7 +63,7 @@ export class Logger {
   private async authenticate() {
     if (!this.tokenExpiresAt || df.isPast(this.tokenExpiresAt)) {
       // fetch new token
-      const basic = encodeB64(`key:${this.apiKey}`);
+      const basic = encodeB64(`${this.projectId}:${this.apiKey}`);
       const res = await this.fetch(this.authUrl, {
         method: "GET",
         headers: {
