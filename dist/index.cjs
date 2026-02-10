@@ -350,6 +350,10 @@ var APIPushRequest = object({
 });
 
 // src/logger.ts
+var encodeB64 = (s) => {
+  return Buffer.from(s, "utf-8").toString("base64");
+};
+
 class Logger {
   serverUrl;
   apiKey;
@@ -372,23 +376,24 @@ class Logger {
     console.log(`[@harrsoft/logger] Initialized logger (${this.serverUrl})`);
   }
   info(message) {
-    this.pushLog("info", message);
+    this.postLog("info", message);
   }
   warn(message) {
-    this.pushLog("warn", message);
+    this.postLog("warn", message);
   }
   error(message) {
-    this.pushLog("error", message);
+    this.postLog("error", message);
   }
   fatal(message) {
-    this.pushLog("fatal", message);
+    this.postLog("fatal", message);
   }
   async authenticate() {
     if (!this.tokenExpiresAt || isPast(this.tokenExpiresAt)) {
+      const basic = encodeB64(`key:${this.apiKey}`);
       const res = await this.fetch(this.authUrl, {
         method: "GET",
         headers: {
-          Authorization: `Basic key:${this.apiKey}`
+          Authorization: `Basic ${basic}`
         }
       });
       try {
@@ -401,7 +406,7 @@ class Logger {
       }
     }
   }
-  async pushLog(level, message) {
+  async postLog(level, message) {
     const callSite = import_node_util.getCallSites({ sourceMap: true }).slice(2)[0];
     if (!callSite) {
       console.warn("[@harrsoft/logger] Could not determine call site");

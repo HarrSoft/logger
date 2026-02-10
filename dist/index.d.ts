@@ -22,7 +22,7 @@ export declare class Logger {
 	error(message: string): void;
 	fatal(message: string): void;
 	private authenticate;
-	private pushLog;
+	private postLog;
 }
 declare const LogLevel: v.PicklistSchema<[
 	"info",
