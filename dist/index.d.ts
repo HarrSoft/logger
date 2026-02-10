@@ -2,37 +2,6 @@
 
 import * as v from 'valibot';
 
-declare const LogLevel: v.PicklistSchema<[
-	"info",
-	"warn",
-	"error",
-	"fatal"
-], undefined>;
-export type LogLevel = v.InferOutput<typeof LogLevel>;
-declare const Log: v.ObjectSchema<{
-	readonly code: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
-	readonly message: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
-}, undefined>;
-export type Log = v.InferOutput<typeof Log>;
-declare const APIAuthResponse: v.ObjectSchema<{
-	readonly token: v.StringSchema<undefined>;
-	readonly expires: v.NumberSchema<undefined>;
-}, undefined>;
-export type APIAuthResponse = v.InferOutput<typeof APIAuthResponse>;
-declare const APIPushRequest: v.ObjectSchema<{
-	readonly level: v.PicklistSchema<[
-		"info",
-		"warn",
-		"error",
-		"fatal"
-	], undefined>;
-	readonly filename: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
-	readonly line: v.OptionalSchema<v.NumberSchema<undefined>, undefined>;
-	readonly column: v.OptionalSchema<v.NumberSchema<undefined>, undefined>;
-	readonly code: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
-	readonly message: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
-}, undefined>;
-export type APIPushRequest = v.InferInput<typeof APIPushRequest>;
 export interface LoggerInit {
 	serverUrl: URL | string;
 	apiKey: string;
@@ -48,16 +17,42 @@ export declare class Logger {
 	private authUrl;
 	private pushUrl;
 	constructor(init: LoggerInit);
-	info(log: v1.Log): void;
-	warn(log: v1.Log): void;
-	error(log: v1.Log): void;
-	fatal(log: v1.Log): void;
+	info(message: string): void;
+	warn(message: string): void;
+	error(message: string): void;
+	fatal(message: string): void;
 	private authenticate;
 	private pushLog;
 }
+declare const LogLevel: v.PicklistSchema<[
+	"info",
+	"warn",
+	"error",
+	"fatal"
+], undefined>;
+export type LogLevel = v.InferOutput<typeof LogLevel>;
+declare const APIAuthResponse: v.ObjectSchema<{
+	readonly token: v.StringSchema<undefined>;
+	readonly expires: v.NumberSchema<undefined>;
+}, undefined>;
+export type APIAuthResponse = v.InferOutput<typeof APIAuthResponse>;
+declare const APIPushRequest: v.ObjectSchema<{
+	readonly level: v.PicklistSchema<[
+		"info",
+		"warn",
+		"error",
+		"fatal"
+	], undefined>;
+	readonly message: v.StringSchema<undefined>;
+	readonly file: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
+	readonly function: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
+	readonly line: v.OptionalSchema<v.NumberSchema<undefined>, undefined>;
+	readonly column: v.OptionalSchema<v.NumberSchema<undefined>, undefined>;
+}, undefined>;
+export type APIPushRequest = v.InferInput<typeof APIPushRequest>;
 
 declare namespace v1 {
-	export { APIAuthResponse, APIPushRequest, Log, LogLevel };
+	export { APIAuthResponse, APIPushRequest, LogLevel };
 }
 
 export {

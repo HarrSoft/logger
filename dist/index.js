@@ -9,6 +9,9 @@ var __export = (target, all) => {
     });
 };
 
+// src/logger.ts
+import { getCallSites } from "node:util";
+
 // node_modules/date-fns/constants.js
 var daysInYear = 365.2425;
 var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1000;
@@ -304,31 +307,19 @@ function parse(schema, input, config$1) {
 var exports_v1 = {};
 __export(exports_v1, {
   LogLevel: () => LogLevel,
-  Log: () => Log,
   APIPushRequest: () => APIPushRequest,
   APIAuthResponse: () => APIAuthResponse
 });
-var LogLevel = picklist([
-  "info",
-  "warn",
-  "error",
-  "fatal"
-]);
-var logBase = {
-  code: optional(string()),
-  message: optional(string())
-};
-var Log = object({
-  ...logBase
-});
+var LogLevel = picklist(["info", "warn", "error", "fatal"]);
 var APIAuthResponse = object({
   token: string(),
   expires: number()
 });
 var APIPushRequest = object({
-  ...logBase,
   level: LogLevel,
-  filename: optional(string()),
+  message: string(),
+  file: optional(string()),
+  function: optional(string()),
   line: optional(number()),
   column: optional(number())
 });
@@ -353,19 +344,19 @@ class Logger {
     } else {
       this.fetch = fetch;
     }
-    console.log(`[harrsoft logger] Initialized logger (${this.serverUrl})`);
+    console.log(`[@harrsoft/logger] Initialized logger (${this.serverUrl})`);
   }
-  info(log) {
-    this.pushLog("info", log);
+  info(message) {
+    this.pushLog("info", message);
   }
-  warn(log) {
-    this.pushLog("warn", log);
+  warn(message) {
+    this.pushLog("warn", message);
   }
-  error(log) {
-    this.pushLog("error", log);
+  error(message) {
+    this.pushLog("error", message);
   }
-  fatal(log) {
-    this.pushLog("fatal", log);
+  fatal(message) {
+    this.pushLog("fatal", message);
   }
   async authenticate() {
     if (!this.tokenExpiresAt || isPast(this.tokenExpiresAt)) {
@@ -380,20 +371,15 @@ class Logger {
         this.token = answer.token;
         this.tokenExpiresAt = fromUnixTime(answer.expires);
       } catch (e) {
-        console.error("[harrsoft logger] Failed to authenticate:", `${res.status}: ${res.statusText}`);
+        console.error("[@harrsoft/logger] Failed to authenticate:", `${res.status}: ${res.statusText}`);
         throw e;
       }
     }
   }
-  async pushLog(level, log) {
-    const stackLine = new Error().stack?.split(`
-`).slice(3)[0] || "";
-    const match = stackLine.match(/at .+ \((file:\/\/)?(.+):(\d+):(\d+)\)/);
-    const filename = match?.[2];
-    const line = match && match[3] ? parseInt(match[3], 10) : undefined;
-    const column = match && match[4] ? parseInt(match[4], 10) : undefined;
-    if (!filename) {
-      console.warn("[harrsoft logger] Could not determine stack trace from ", new Error().stack);
+  async pushLog(level, message) {
+    const callSite = getCallSites({ sourceMap: true }).slice(2)[0];
+    if (!callSite) {
+      console.warn("[@harrsoft/logger] Could not determine call site");
     }
     try {
       await this.authenticate();
@@ -403,16 +389,16 @@ class Logger {
           Authorization: "Bearer " + this.token
         },
         body: JSON.stringify(parse(APIPushRequest, {
-          code: log.code,
-          message: log.message,
           level,
-          filename,
-          line,
-          column
+          message,
+          file: callSite?.scriptName,
+          function: callSite?.functionName,
+          line: callSite?.lineNumber,
+          column: callSite?.columnNumber
         }))
       });
     } catch (e) {
-      console.error("[harrsoft logger] Could not deliver log:", e);
+      console.error("[@harrsoft/logger] Could not deliver log:", e);
     }
   }
 }
