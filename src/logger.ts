@@ -9,6 +9,7 @@ const encodeB64 = (s: string): string => {
 };
 
 export interface LoggerInit {
+  service: string;
   serverUrl: URL | string;
   projectId: string;
   apiKey: string;
@@ -16,6 +17,7 @@ export interface LoggerInit {
 }
 
 export class Logger {
+  private service: string;
   private serverUrl: URL;
   private projectId: string;
   private apiKey: string;
@@ -29,6 +31,7 @@ export class Logger {
   private pushUrl: URL;
 
   constructor(init: LoggerInit) {
+    this.service = init.service;
     this.projectId = init.projectId;
     this.apiKey = init.apiKey;
     this.serverUrl = new URL(this.apiVersion, init.serverUrl);
@@ -107,6 +110,7 @@ export class Logger {
           v.parse(v1.APIPushRequest, {
             level,
             message,
+            service: this.service,
             file: callSite?.scriptName,
             function: callSite?.functionName,
             line: callSite?.lineNumber,

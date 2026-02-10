@@ -3,12 +3,16 @@
 import * as v from 'valibot';
 
 export interface LoggerInit {
+	service: string;
 	serverUrl: URL | string;
+	projectId: string;
 	apiKey: string;
 	fetch?: typeof fetch;
 }
 export declare class Logger {
+	private service;
 	private serverUrl;
+	private projectId;
 	private apiKey;
 	private fetch;
 	private apiVersion;
@@ -43,6 +47,7 @@ declare const APIPushRequest: v.ObjectSchema<{
 		"error",
 		"fatal"
 	], undefined>;
+	readonly service: v.StringSchema<undefined>;
 	readonly message: v.StringSchema<undefined>;
 	readonly file: v.OptionalSchema<v.StringSchema<undefined>, undefined>;
 	readonly function: v.OptionalSchema<v.StringSchema<undefined>, undefined>;

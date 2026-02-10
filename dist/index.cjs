@@ -342,6 +342,7 @@ var APIAuthResponse = object({
 });
 var APIPushRequest = object({
   level: LogLevel,
+  service: string(),
   message: string(),
   file: optional(string()),
   function: optional(string()),
@@ -355,7 +356,9 @@ var encodeB64 = (s) => {
 };
 
 class Logger {
+  service;
   serverUrl;
+  projectId;
   apiKey;
   fetch;
   apiVersion = "/v1";
@@ -364,6 +367,8 @@ class Logger {
   authUrl;
   pushUrl;
   constructor(init) {
+    this.service = init.service;
+    this.projectId = init.projectId;
     this.apiKey = init.apiKey;
     this.serverUrl = new URL(this.apiVersion, init.serverUrl);
     this.authUrl = new URL("/auth", this.serverUrl);
@@ -389,7 +394,7 @@ class Logger {
   }
   async authenticate() {
     if (!this.tokenExpiresAt || isPast(this.tokenExpiresAt)) {
-      const basic = encodeB64(`key:${this.apiKey}`);
+      const basic = encodeB64(`${this.projectId}:${this.apiKey}`);
       const res = await this.fetch(this.authUrl, {
         method: "GET",
         headers: {
@@ -421,6 +426,7 @@ class Logger {
         body: JSON.stringify(parse(APIPushRequest, {
           level,
           message,
+          service: this.service,
           file: callSite?.scriptName,
           function: callSite?.functionName,
           line: callSite?.lineNumber,

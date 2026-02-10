@@ -11,6 +11,7 @@ export type APIAuthResponse = v.InferOutput<typeof APIAuthResponse>;
 
 export const APIPushRequest = v.object({
   level: LogLevel,
+  service: v.string(),
   message: v.string(),
   file: v.optional(v.string()),
   function: v.optional(v.string()),
